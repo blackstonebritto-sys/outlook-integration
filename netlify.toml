@@ -1,6 +1,3 @@
 [build]
   command = "ng build"
   publish = "dist/outlook/browser"
-
-[build.environment]
-  NODE_VERSION = "18"
