@@ -21,7 +21,7 @@ export class AuthService {
     if (!active) {
       this.msal.loginRedirect({ 
         scopes: graph.scopes,
-        prompt: 'select_account'
+        prompt: 'consent' // Force consent screen to appear
       });
     }
   }
@@ -34,6 +34,19 @@ export class AuthService {
     // Clear all cached tokens and force fresh login
     this.msal.instance.clearCache();
     this.loginRedirect();
+  }
+
+  async forceFreshLogin(): Promise<void> {
+    // Logout first to clear all tokens
+    await this.msal.logoutRedirect();
+    
+    // Wait a moment then login with consent
+    setTimeout(() => {
+      this.msal.loginRedirect({ 
+        scopes: graph.scopes,
+        prompt: 'consent' // Force consent screen
+      });
+    }, 1000);
   }
 
   async acquireGraphToken(): Promise<string | null> {

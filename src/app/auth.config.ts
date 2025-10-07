@@ -3,9 +3,9 @@ import { MsalGuardConfiguration, MsalInterceptorConfiguration } from '@azure/msa
 
 // TODO: Replace placeholders with your actual Azure AD app registration values
 export const azureAd = {
-  clientId: '66bbbfb9-eaf2-470a-b7b1-f36f1401b91d',
+  clientId: '3634d0ce-e19d-4cfe-8968-ec174e032577',
   redirectUri: 'http://localhost:4200',
-  authority: "https://login.microsoftonline.com/common", // Supports both work/school and personal accounts
+  authority: "https://login.microsoftonline.com/organizations", // Allows any organizational account (work/school accounts only)
 };
 
 export const graph = {
@@ -53,6 +53,7 @@ export function createMsalGuardConfig(): MsalGuardConfiguration {
     interactionType: InteractionType.Redirect,
     authRequest: {
       scopes: graph.scopes,
+      prompt: 'consent', // Force consent screen to appear
     },
   };
 }

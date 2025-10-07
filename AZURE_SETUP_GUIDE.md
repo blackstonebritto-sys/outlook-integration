@@ -17,8 +17,8 @@
 
 **Supported account types:** 
 - ❌ **Don't select:** "Accounts in this organizational directory only"
-- ❌ **Don't select:** "Accounts in any organizational directory (Any Azure AD directory - Multitenant)"
-- ✅ **SELECT:** "Accounts in any organizational directory and personal Microsoft accounts (e.g. Skype, Xbox, Outlook.com)"
+- ✅ **SELECT:** "Accounts in any organizational directory (Any Azure AD directory - Multitenant)" (for multiple organizations)
+- ❌ **Don't select:** "Accounts in any organizational directory and personal Microsoft accounts (e.g. Skype, Xbox, Outlook.com)"
 
 **Redirect URI:**
 - Platform: **Single-page application (SPA)**
@@ -58,13 +58,13 @@ Replace your `clientId` in `src/app/auth.config.ts`:
 export const azureAd = {
   clientId: 'YOUR_NEW_CLIENT_ID_HERE', // Replace with the new Client ID from Step 3
   redirectUri: 'http://localhost:4200',
-  authority: "https://login.microsoftonline.com/common",
+  authority: "https://login.microsoftonline.com/organizations", // Only allows organizational accounts
 };
 ```
 
 ### Step 7: Test Your App
 1. Run your Angular app: `ng serve`
-2. Try logging in with a personal Microsoft account (@outlook.com, @hotmail.com)
+2. Try logging in with an organizational account (work/school email)
 3. The login should work without the "unauthorized_client" error
 
 ## 🔍 Troubleshooting

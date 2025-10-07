@@ -156,47 +156,45 @@ export class GraphService {
       throw new Error('Failed to acquire access token');
     }
     
-    // Debug token format
-    console.log('Raw token length:', token.length);
-    console.log('Token parts count:', token.split('.').length);
-    console.log('Token preview:', token.substring(0, 50) + '...');
-    
-    // Try to decode the token, but don't fail if it's not a JWT
-    let decoded: any = null;
-    let isPersonalAccount = false;
-    
+    // First, check if user has mailbox access
     try {
-      decoded = jwtDecode(token);
-      console.log('Token decoded successfully:', decoded);
-      isPersonalAccount = this.isPersonalAccount(decoded);
-    } catch (decodeError) {
-      console.log('Token is not a JWT (this is normal for Microsoft Graph tokens)');
-      console.log('Using default endpoint selection for Microsoft Graph token');
-      // For non-JWT tokens, we'll try both endpoints
-      isPersonalAccount = false; // Default to work/school account behavior
+      const userResponse = await this.http.get('https://graph.microsoft.com/v1.0/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }).toPromise();
+      
+      console.log('User profile:', userResponse);
+      
+      // Check if it's a personal account
+      const user = userResponse as any;
+      const isPersonalAccount = user.mail && user.mail.includes('@outlook.com');
+      
+      if (isPersonalAccount) {
+        console.log('🏠 Personal account detected - using personal endpoints');
+        return await this.getPersonalAccountMail(token, top);
+      } else {
+        console.log('🏢 Work/School account detected - using organizational endpoints');
+        return await this.getOrganizationalAccountMail(token, top);
+      }
+      
+    } catch (error) {
+      console.error('Failed to get user profile:', error);
+      throw new Error('Cannot determine account type. Please check your login.');
     }
-    
-    let endpoints: string[];
-    if (isPersonalAccount) {
-      console.log('🏠 Using personal account endpoints');
-      endpoints = [
-        'https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?$top=' + top,
-        'https://graph.microsoft.com/v1.0/me/mailFolders',
-        'https://graph.microsoft.com/v1.0/me/mailFolders/Inbox'
-      ];
-    } else {
-      console.log('🏢 Using work/school account endpoints (or trying both)');
-      endpoints = [
-        'https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?$top=' + top, // This works for both
-        'https://graph.microsoft.com/v1.0/me/messages?$top=' + top, // This works for work/school
-        'https://graph.microsoft.com/v1.0/me/mailFolders',
-        'https://graph.microsoft.com/v1.0/me/mailFolders/Inbox'
-      ];
-    }
+  }
+
+  private async getPersonalAccountMail(token: string, top: number): Promise<any> {
+    const endpoints = [
+      'https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?$top=' + top,
+      'https://graph.microsoft.com/v1.0/me/mailFolders',
+      'https://graph.microsoft.com/v1.0/me/mailFolders/Inbox'
+    ];
     
     for (const url of endpoints) {
       try {
-        console.log('Trying endpoint:', url);
+        console.log('Trying personal endpoint:', url);
         const response = await this.http.get(url, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -204,15 +202,50 @@ export class GraphService {
           }
         }).toPromise();
         
-        console.log('Success with endpoint:', url);
+        console.log('Success with personal endpoint:', url);
         return response;
-      } catch (error) {
-        console.log('Failed with endpoint:', url, error);
+      } catch (error: any) {
+        console.log('Failed with personal endpoint:', url, error.error?.message);
+        if (error.error?.code === 'MailboxNotEnabledForRESTAPI') {
+          throw new Error('Your personal account mailbox is not accessible through Microsoft Graph API. This might be due to account restrictions or regional limitations.');
+        }
         continue;
       }
     }
     
-    throw new Error('All mail endpoints failed. Your account may not have mailbox access.');
+    throw new Error('All personal account mail endpoints failed.');
+  }
+
+  private async getOrganizationalAccountMail(token: string, top: number): Promise<any> {
+    const endpoints = [
+      'https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?$top=' + top,
+      'https://graph.microsoft.com/v1.0/me/messages?$top=' + top,
+      'https://graph.microsoft.com/v1.0/me/mailFolders',
+      'https://graph.microsoft.com/v1.0/me/mailFolders/Inbox'
+    ];
+    
+    for (const url of endpoints) {
+      try {
+        console.log('Trying organizational endpoint:', url);
+        const response = await this.http.get(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }).toPromise();
+        
+        console.log('Success with organizational endpoint:', url);
+        return response;
+      } catch (error: any) {
+        console.log('Failed with organizational endpoint:', url, error.error?.message);
+        if (error.error?.code === 'MailboxNotEnabledForRESTAPI') {
+          throw new Error('Your organization uses on-premise Exchange or has restrictions that prevent Microsoft Graph API access. Please contact your IT administrator.');
+        }
+        continue;
+      }
+    }
+    
+    throw new Error('All organizational account mail endpoints failed. Your organization may not have Exchange Online enabled.');
   }
 
   private isPersonalAccount(decoded: any): boolean {
