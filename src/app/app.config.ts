@@ -5,6 +5,7 @@ import { MsalBroadcastService, MsalGuard, MsalInterceptor, MsalService, MSAL_GUA
 import { createMsalInstance, createMsalInterceptorConfig, createMsalGuardConfig, initializeMsal } from './auth.config';
 import { APP_INITIALIZER } from '@angular/core';
 import { PublicClientApplication } from '@azure/msal-browser';
+import { ImapService } from './imap.service';
 
 import { routes } from './app.routes';
 
@@ -27,5 +28,6 @@ export const appConfig: ApplicationConfig = {
     MsalService,
     MsalGuard,
     MsalBroadcastService,
+    ImapService,
   ]
 };

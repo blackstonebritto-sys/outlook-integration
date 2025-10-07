@@ -1,163 +1,92 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { AuthService } from './auth.service';
-import { RouterOutlet } from '@angular/router';
-import { GraphService } from './graph.service';
-import { FormsModule } from '@angular/forms';
-import { CommonModule, DatePipe } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ImapService } from './imap.service';
+import { LoginComponent } from './login/login.component';
+import { EmailListComponent } from './email-list/email-list.component';
+import { EmailComposeComponent } from './email-compose/email-compose.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, FormsModule, CommonModule, DatePipe],
-  templateUrl: './app.html',
-  styleUrl: './app.scss'
+  standalone: true,
+  imports: [CommonModule, LoginComponent, EmailListComponent, EmailComposeComponent],
+  template: `
+    <div class="app-container">
+      <!-- Login Screen -->
+      <app-login 
+        *ngIf="!isLoggedIn" 
+        (loginSuccess)="onLoginSuccess()"
+      ></app-login>
+      
+      <!-- Email Interface -->
+      <div *ngIf="isLoggedIn" class="email-interface">
+        <app-email-list 
+          (replyToEmailEvent)="onReplyToEmail($event)"
+          (logout)="onLogout()"
+        ></app-email-list>
+      </div>
+      
+      <!-- Email Compose Modal -->
+      <app-email-compose
+        [isVisible]="showComposeModal"
+        [replyToEmail]="selectedEmailForReply"
+        (close)="onCloseCompose()"
+        (emailSent)="onEmailSent()"
+      ></app-email-compose>
+    </div>
+  `,
+  styles: [`
+    .app-container {
+      min-height: 100vh;
+      background: #f8f9fa;
+    }
+    
+    .email-interface {
+      min-height: 100vh;
+    }
+  `]
 })
-export class App implements OnInit {
-  protected readonly title = signal('outlook');
-  protected readonly emails = signal<Array<any>>([]);
-  protected readonly view = signal<'inbox' | 'sent'>('inbox');
-  protected readonly loading = signal<boolean>(false);
-  protected readonly interactionInProgress = signal<boolean>(false);
-  protected to = signal<string>('');
-  protected subject = signal<string>('');
-  protected body = signal<string>('');
+export class AppComponent implements OnInit {
+  isLoggedIn = false;
+  showComposeModal = false;
+  selectedEmailForReply: any = null;
 
-  constructor(private readonly auth: AuthService, private readonly graph: GraphService) {}
+  constructor(private imapService: ImapService) {}
 
-  async ngOnInit() {
-    this.interactionInProgress.set(true);
-    try {
-      await this.auth.handleRedirect();
-    } finally {
-      this.interactionInProgress.set(false);
-    }
+  ngOnInit() {
+    // Initialize the IMAP service
+    this.imapService.initialize();
+    
+    // Check if user is already logged in
+    this.isLoggedIn = this.imapService.isLoggedIn();
+    
+    // Subscribe to login state changes
+    this.imapService.currentUser$.subscribe(user => {
+      this.isLoggedIn = user !== null;
+    });
   }
 
-  login() {
-    if (!this.auth.instance.getActiveAccount()) {
-      this.auth.loginRedirect();
-    }
+  onLoginSuccess() {
+    this.isLoggedIn = true;
   }
 
-  logout() {
-    this.auth.logoutRedirect();
+  onLogout() {
+    this.imapService.logout();
+    this.isLoggedIn = false;
   }
 
-  clearCacheAndLogin() {
-    this.auth.clearCacheAndLogin();
+  onReplyToEmail(email: any) {
+    this.selectedEmailForReply = email;
+    this.showComposeModal = true;
   }
 
-  async loadInbox() {
-    this.loading.set(true);
-    try {
-      const result = await this.graph.getInbox(10) as any;
-      if (!result) return;
-      this.emails.set(result?.value ?? []);
-      this.view.set('inbox');
-    } catch (error) {
-      console.error('Failed to load inbox:', error);
-      // You might want to show a user-friendly error message here
-      alert('Failed to load inbox. Please try logging in again.');
-    } finally {
-      this.loading.set(false);
-    }
+  onCloseCompose() {
+    this.showComposeModal = false;
+    this.selectedEmailForReply = null;
   }
 
-  async loadSent() {
-    this.loading.set(true);
-    try {
-      const result = await this.graph.getSent(10) as any;
-      if (!result) return;
-      this.emails.set(result?.value ?? []);
-      this.view.set('sent');
-    } catch (error) {
-      console.error('Failed to load sent emails:', error);
-      alert('Failed to load sent emails. Please try logging in again.');
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  decodeToken() {
-    const token = (this.auth as any).lastToken as string | undefined;
-    return token ? (this.auth as any).decodeJwt(token) : null;
-  }
-
-  async sendEmail() {
-    if (!this.to() || !this.subject()) return;
-    this.loading.set(true);
-    try {
-      await this.graph.sendMail(this.to(), this.subject(), this.body());
-      this.to.set('');
-      this.subject.set('');
-      this.body.set('');
-      await this.loadSent();
-    } catch (error) {
-      console.error('Failed to send email:', error);
-      alert('Failed to send email. Please try again.');
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async checkTokenInfo() {
-    try {
-      await this.graph.checkTokenInfo();
-    } catch (error) {
-      console.error('Failed to check token info:', error);
-      alert('Failed to check token info. Please try logging in again.');
-    }
-  }
-
-  async testTokenAcquisition() {
-    this.loading.set(true);
-    try {
-      console.log('Testing token acquisition...');
-      const token = await this.auth.acquireGraphToken();
-      if (token) {
-        console.log('Token acquired successfully!');
-        console.log('Token length:', token.length);
-        console.log('Token preview:', token.substring(0, 100) + '...');
-        alert('Token acquired successfully! Check console for details.');
-      } else {
-        console.log('No token acquired');
-        alert('No token acquired. Please log in first.');
-      }
-    } catch (error) {
-      console.error('Token acquisition failed:', error);
-      alert('Token acquisition failed: ' + error);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async testMe() {
-    this.loading.set(true);
-    try {
-      const result = await this.graph.getMe() as any;
-      console.log('User profile:', result);
-      alert(`Success! User: ${result.displayName} (${result.mail || result.userPrincipalName})`);
-    } catch (error) {
-      console.error('Failed to get user profile:', error);
-      alert('Failed to get user profile. Please try logging in again.');
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async checkMailboxAccess() {
-    this.loading.set(true);
-    try {
-      const hasAccess = await this.graph.checkMailboxAccess();
-      if (hasAccess) {
-        alert('✅ Mailbox access is available! You can read emails.');
-      } else {
-        alert('❌ No mailbox access. Your account may not have Exchange Online mailbox.');
-      }
-    } catch (error) {
-      console.error('Failed to check mailbox access:', error);
-      alert('Failed to check mailbox access. Please try logging in again.');
-    } finally {
-      this.loading.set(false);
-    }
+  onEmailSent() {
+    this.showComposeModal = false;
+    this.selectedEmailForReply = null;
+    // Optionally refresh the email list
   }
 }
