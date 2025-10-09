@@ -20,22 +20,26 @@ export class ImapService {
 
   // Get all emails
   async getEmails(): Promise<EmailMessage[]> {
-    return this.http.get<EmailMessage[]>(`${this.baseUrl}/emails`).toPromise() || [];
+    const result = await this.http.get<EmailMessage[]>(`${this.baseUrl}/emails`).toPromise();
+    return result || [];
   }
 
   // Get emails with text filter
   async getEmailsByText(searchText: string): Promise<EmailMessage[]> {
-    return this.http.get<EmailMessage[]>(`${this.baseUrl}/emails/search?text=${encodeURIComponent(searchText)}`).toPromise() || [];
+    const result = await this.http.get<EmailMessage[]>(`${this.baseUrl}/emails/search?text=${encodeURIComponent(searchText)}`).toPromise();
+    return result || [];
   }
 
   // Get emails by sender
   async getEmailsBySender(sender: string): Promise<EmailMessage[]> {
-    return this.http.get<EmailMessage[]>(`${this.baseUrl}/emails/sender?from=${encodeURIComponent(sender)}`).toPromise() || [];
+    const result = await this.http.get<EmailMessage[]>(`${this.baseUrl}/emails/sender?from=${encodeURIComponent(sender)}`).toPromise();
+    return result || [];
   }
 
   // Get unread emails
   async getUnreadEmails(): Promise<EmailMessage[]> {
-    return this.http.get<EmailMessage[]>(`${this.baseUrl}/emails/unread`).toPromise() || [];
+    const result = await this.http.get<EmailMessage[]>(`${this.baseUrl}/emails/unread`).toPromise();
+    return result || [];
   }
 
   // Send reply
