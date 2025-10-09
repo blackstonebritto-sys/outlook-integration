@@ -234,7 +234,9 @@ export class GraphService {
       throw new Error('Failed to acquire access token');
     }
     
-    console.log('Token acquired successfully for getSent:', jwtDecode(token));
+    console.log('Token acquired successfully for getSent');
+    console.log('Token length:', token.length);
+    console.log('Token preview:', token.substring(0, 50) + '...');
     const url = 'https://graph.microsoft.com/v1.0/me/mailFolders/SentItems/messages?$select=from,sender,subject,receivedDateTime,bodyPreview,webLink&$orderby=receivedDateTime desc&$top=' + top;
     
     console.log('Making request to:', url);
@@ -256,7 +258,9 @@ export class GraphService {
       throw new Error('Failed to acquire access token');
     }
     
-    console.log('Token acquired successfully for sendMail:', jwtDecode(token));
+    console.log('Token acquired successfully for sendMail');
+    console.log('Token length:', token.length);
+    console.log('Token preview:', token.substring(0, 50) + '...');
     const url = 'https://graph.microsoft.com/v1.0/me/sendMail';
     const payload = {
       message: {
@@ -289,11 +293,19 @@ export class GraphService {
       return;
     }
 
-    const decoded = jwtDecode(token) as any;
-    const isPersonalAccount = this.isPersonalAccount(decoded);
+    let decoded: any = null;
+    let isPersonalAccount = false;
     
-    console.log('Account type:', isPersonalAccount ? 'Personal' : 'Work/School');
-    console.log('Token scopes:', decoded.scp || decoded.scope);
+    try {
+      decoded = jwtDecode(token) as any;
+      isPersonalAccount = this.isPersonalAccount(decoded);
+      console.log('Account type:', isPersonalAccount ? 'Personal' : 'Work/School');
+      console.log('Token scopes:', decoded.scp || decoded.scope);
+    } catch (decodeError) {
+      console.log('Token is not a JWT (this is normal for Microsoft Graph tokens)');
+      console.log('Account type: Unknown (using default behavior)');
+      console.log('Token scopes: Unknown');
+    }
     console.log('');
 
     const testEndpoints = [
