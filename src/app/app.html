@@ -195,13 +195,11 @@
           
           <div class="form-group">
             <label class="form-label">Message</label>
-            <textarea 
-              class="form-textarea" 
-              placeholder="Type your message here..." 
-              rows="8"
+            <app-rich-editor 
+              placeholder="Type your message here..."
               [ngModel]="body()" 
               (ngModelChange)="body.set($event)"
-            ></textarea>
+            ></app-rich-editor>
           </div>
           
           <div class="form-actions">

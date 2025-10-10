@@ -3,7 +3,7 @@ import { MsalGuardConfiguration, MsalInterceptorConfiguration } from '@azure/msa
 
 // TODO: Replace placeholders with your actual Azure AD app registration values
 export const azureAd = {
-  clientId: '3634d0ce-e19d-4cfe-8968-ec174e032577',
+  clientId: '78cb4769-8a78-40c4-a943-81a6399ba91a',
   redirectUri: 'http://localhost:4200',
   authority: "https://login.microsoftonline.com/organizations", // Allows any organizational account (work/school accounts only)
 };

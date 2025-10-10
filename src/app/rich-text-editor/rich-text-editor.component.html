@@ -1,0 +1,193 @@
+<!-- rich-text-editor.component.html -->
+<div class="re-editor">
+    <div class="re-toolbar">
+        <div class="left">
+            <!-- Undo/Redo buttons -->
+            <button type="button" (click)="undo()" title="Undo (Ctrl+Z)" [disabled]="historyIndex <= 0"
+                class="d-flex align-items-center justify-content-center">
+                <i class="fas fa-undo"></i>
+            </button>
+            <button type="button" (click)="redo()" title="Redo (Ctrl+R or Ctrl+Y)"
+                [disabled]="historyIndex >= history.length - 1"
+                class="d-flex align-items-center justify-content-center">
+                <i class="fas fa-redo"></i>
+            </button>
+
+            <!-- Font Family Selector -->
+            <select class="form-select" [(ngModel)]="activeStates.fontName" (ngModelChange)="setFontFamily($event)"
+                [style.fontFamily]="activeStates.fontName || 'inherit'" title="Font Family" placeholder="Select font">
+
+                <!-- Placeholder option -->
+                <option value="" disabled selected *ngIf="!activeStates.fontName">
+                    Select Font
+                </option>
+
+                <!-- Fonts -->
+                <option *ngFor="let font of fonts" [value]="font.value" [style.fontFamily]="font.value">
+                    {{font.label}}
+                </option>
+            </select>
+
+            <!-- Font Size Selector -->
+            <select (change)="onFontSizeChange($event)" title="Font Size" [value]="activeStates.fontSize">
+                <option value="">Normal</option>
+                <option value="7">H1</option>
+                <option value="6">H2</option>
+                <option value="5">H3</option>
+                <option value="4">H4</option>
+                <option value="3">H5</option>
+                <option value="2">H6</option>
+                <option value="1">H7</option>
+            </select>
+
+            <!-- <select (change)="formatBlock($event.target)" [value]="activeStates.formatBlock">
+                <option value="P">Normal</option>
+                <option value="H1">Heading 1</option>
+                <option value="H2">Heading 2</option>
+                <option value="H3">Heading 3</option>
+                <option value="PRE">Code</option>
+            </select> -->
+
+            <button type="button" (click)="exec('bold')" title="Bold" [class.active]="activeStates.bold">
+                <i class="fas fa-bold"></i>
+            </button>
+
+            <button type="button" (click)="exec('italic')" title="Italic" [class.active]="activeStates.italic">
+                <i class="fas fa-italic"></i>
+            </button>
+
+            <button type="button" (click)="exec('underline')" title="Underline" [class.active]="activeStates.underline">
+                <i class="fas fa-underline"></i>
+            </button>
+
+            <button type="button" (click)="exec('strikeThrough')" title="Strike"
+                [class.active]="activeStates.strikeThrough">
+                <i class="fas fa-strikethrough"></i>
+            </button>
+
+            <button type="button" (click)="exec('justifyLeft')" title="Left" [class.active]="activeStates.justifyLeft">
+                <i class="fas fa-align-left"></i>
+            </button>
+
+            <button type="button" (click)="exec('justifyCenter')" title="Center"
+                [class.active]="activeStates.justifyCenter">
+                <i class="fas fa-align-center"></i>
+            </button>
+
+            <button type="button" (click)="exec('justifyRight')" title="Right"
+                [class.active]="activeStates.justifyRight">
+                <i class="fas fa-align-right"></i>
+            </button>
+
+            <button type="button" (click)="exec('justifyFull')" title="Justify"
+                [class.active]="activeStates.justifyFull">
+                <i class="fas fa-align-justify"></i>
+            </button>
+
+            <button type="button" (click)="exec('insertUnorderedList')" title="Bullets"
+                [class.active]="activeStates.insertUnorderedList">
+                <i class="fas fa-list-ul"></i>
+            </button>
+
+            <button type="button" (click)="exec('insertOrderedList')" title="Number"
+                [class.active]="activeStates.insertOrderedList">
+                <i class="fas fa-list-ol"></i>
+            </button>
+
+            <button type="button" (click)="insertTableDialog()" title="Insert table">
+                <i class="fas fa-table" aria-hidden="true"></i>
+            </button>
+
+            <label class="color-picker">
+                <span>Text Color</span>
+                <input type="color" (change)="onTextColorChange($event)" [value]="activeStates.foreColor" />
+            </label>
+
+            <label class="color-picker">
+                <span>Cell Color</span>
+                <input type="color" (change)="onCellColorChange($event)" />
+            </label>
+        </div>
+
+        <!-- <div class="right">
+            <button type="button" (click)="toggleSource()" [class.active]="showSource">
+                {{showSource ? 'WYSIWYG' : 'HTML'}}
+            </button>
+            <button type="button" (click)="convertHtmlToText()">HTML → Text</button>
+            <button type="button" (click)="convertTextToHtml()">Text → HTML</button>
+            <button type="button" (click)="downloadHtml()">Download HTML</button>
+            <button type="button" (click)="clear()">Clear</button>
+        </div> -->
+
+        <!-- Table Dialog -->
+        <div class="dialog-overlay" *ngIf="tableDialogOpen" (click)="tableDialogOpen = false">
+            <div class="dialog" (click)="$event.stopPropagation()">
+                <h3>Insert Table</h3>
+                <div class="form-grid">
+                    <label>
+                        Rows:
+                        <input type="number" min="1" max="9" [(ngModel)]="tableRows" (input)="validateTableInputs()"
+                            (keydown)="preventInvalidTableInput($event)" />
+                    </label>
+                    <label>
+                        Columns:
+                        <input type="number" min="1" max="9" [(ngModel)]="tableCols" (input)="validateTableInputs()"
+                            (keydown)="preventInvalidTableInput($event)" />
+                    </label>
+                    <label>
+                        Border Color:
+                        <input type="color" [(ngModel)]="tableBorderColor" (change)="updateTablePreview()" />
+                    </label>
+                    <label>
+                        Cell Background:
+                        <input type="color" [(ngModel)]="cellBackgroundColor" (change)="updateTablePreview()" />
+                    </label>
+                </div>
+
+                <div class="table-preview">
+                    <p><strong>Preview:</strong></p>
+                    <table [ngStyle]="{'border-color': tableBorderColor}">
+                        <tr *ngFor="let r of [].constructor(tableRows)">
+                            <td *ngFor="let c of [].constructor(tableCols)" [ngStyle]="{
+                                'border': '1px solid ' + tableBorderColor,
+                                'background-color': cellBackgroundColor,
+                                'padding': '8px'
+                            }">
+                                &nbsp;
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="dialog-buttons">
+                    <button (click)="insertTable(tableRows, tableCols)">Insert</button>
+                    <button (click)="tableDialogOpen=false">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="re-body">
+        <div *ngIf="!showSource" #editor class="editor" contenteditable="true" [attr.placeholder]="placeholder"
+            (input)="onInput()" (paste)="onPaste($event)" (keydown)="onKeyDown($event)"
+            (click)="showCellTooltip($event)" (blur)="hideCellTooltip()"></div>
+
+        <textarea *ngIf="showSource" class="source" [(ngModel)]="html"
+            (ngModelChange)="onSourceChange($event)"></textarea>
+
+        <!-- Table cell tooltip -->
+        <div class="cell-tooltip" *ngIf="tooltipVisible" [ngStyle]="{'top.px': tooltipY, 'left.px': tooltipX}"
+            (mousedown)="$event.stopPropagation()" 
+            (click)="$event.stopPropagation()">
+            <button (mousedown)="$event.stopPropagation(); addRow('above')">Add Row Above</button>
+            <button (mousedown)="$event.stopPropagation(); addRow('below')">Add Row Below</button>
+            <button (mousedown)="$event.stopPropagation(); addColumn('left')">Add Col Left</button>
+            <button (mousedown)="$event.stopPropagation(); addColumn('right')">Add Col Right</button>
+            <button (mousedown)="$event.stopPropagation(); deleteRow()">Delete Row</button>
+            <button (mousedown)="$event.stopPropagation(); deleteColumn()">Delete Col</button>
+            <!-- Test button for debugging -->
+            <button (mousedown)="$event.stopPropagation(); testTooltipFunction()">Test Tooltip</button>
+        </div>
+
+    </div>
+</div>

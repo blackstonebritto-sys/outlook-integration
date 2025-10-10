@@ -4,10 +4,11 @@ import { RouterOutlet } from '@angular/router';
 import { GraphService } from './graph.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
+import { RichEditorComponent } from './rich-text-editor/rich-text-editor.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, FormsModule, CommonModule, DatePipe],
+  imports: [RouterOutlet, FormsModule, CommonModule, DatePipe, RichEditorComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   encapsulation: ViewEncapsulation.None

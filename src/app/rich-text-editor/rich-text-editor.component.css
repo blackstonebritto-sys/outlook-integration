@@ -1,0 +1,300 @@
+ .re-editor {
+     border: 1px solid #ddd;
+     border-radius: 6px;
+     font-family: Arial, sans-serif;
+ }
+
+ .re-toolbar {
+     display: flex;
+     justify-content: space-between;
+     background: #f7f7f7;
+     padding: 6px;
+     gap: 8px;
+     align-items: center;
+     flex-wrap: wrap;
+ }
+
+ .re-toolbar select,
+ .re-toolbar input[type=file],
+ .re-toolbar input {
+     margin-right: 6px;
+ }
+
+ .re-toolbar button {
+     padding: 6px 8px;
+     border-radius: 4px;
+     border: 1px solid #ccc;
+     background: white;
+     cursor: pointer;
+ }
+
+ .re-body {
+     padding: 8px;
+ }
+
+ .editor {
+     min-height: 220px;
+     outline: none;
+     padding: 8px;
+     border: 1px solid #eee;
+     border-radius: 4px;
+ }
+
+ .editor:empty:before {
+     content: attr(placeholder);
+     color: #999;
+ }
+
+ .source {
+     width: 100%;
+     height: 300px;
+     font-family: monospace;
+ }
+
+ .dialog {
+     padding: 8px;
+     background: #fff;
+     border-top: 1px solid #eee;
+     display: flex;
+     gap: 8px;
+     align-items: center;
+ }
+
+
+ /* rich-text-editor.component.css */
+
+ /* Reset common global styles inside editor */
+ .re-body,
+ .editor {
+     all: initial !important;
+     /* resets almost everything */
+     all: unset !important;
+     /* or use this, but initial is more complete */
+
+     /* Then reapply minimal needed styles */
+     display: block !important;
+     width: 100% !important;
+     min-height: 150px !important;
+     font-family: Arial, sans-serif !important;
+     font-size: 14px !important;
+     color: black !important;
+     /* Add any other base styles you want */
+ }
+
+ .re-editor {
+     border: 1px solid #ccc;
+     border-radius: 4px;
+     font-family: Arial, sans-serif;
+ }
+
+ .re-toolbar {
+     background: #f5f5f5;
+     padding: 8px;
+     border-bottom: 1px solid #ccc;
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     flex-wrap: wrap;
+ }
+
+ .re-toolbar .left,
+ .re-toolbar .right {
+     display: flex;
+     gap: 8px;
+     align-items: center;
+     flex-wrap: wrap;
+ }
+
+ .re-toolbar button {
+     background: white;
+     border: 1px solid #ccc;
+     border-radius: 3px;
+     padding: 6px 8px;
+     cursor: pointer;
+     min-width: 32px;
+ }
+
+ .re-toolbar button:hover:not(:disabled) {
+     background: #e9e9e9;
+ }
+
+ .re-toolbar button:disabled {
+     opacity: 0.5;
+     cursor: not-allowed;
+ }
+
+ .re-toolbar select,
+ .re-toolbar input[type="color"] {
+     border: 1px solid #ccc;
+     border-radius: 3px;
+     padding: 4px;
+ }
+
+ .re-toolbar label {
+     display: flex;
+     align-items: center;
+     gap: 4px;
+     font-size: 12px;
+     white-space: nowrap;
+ }
+
+ .re-body {
+     min-height: 200px;
+ }
+
+ .editor {
+     padding: 12px;
+     min-height: 200px;
+     outline: none;
+ }
+
+ .editor:empty:before {
+     content: attr(placeholder);
+     color: #999;
+ }
+
+ .source {
+     width: 100%;
+     height: 200px;
+     padding: 12px;
+     border: none;
+     font-family: monospace;
+     resize: vertical;
+ }
+
+ /* Dialog Styles */
+ .dialog-overlay {
+     position: fixed;
+     top: 0;
+     left: 0;
+     right: 0;
+     bottom: 0;
+     background: rgba(0, 0, 0, 0.5);
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     z-index: 1000;
+ }
+
+ .dialog {
+     background: white;
+     padding: 20px;
+     border-radius: 8px;
+     min-width: 400px;
+     max-width: 90vw;
+ }
+
+ .form-grid {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 12px;
+     margin: 15px 0;
+ }
+
+ .form-grid label {
+     display: flex;
+     flex-direction: column;
+     gap: 4px;
+ }
+
+ .table-preview {
+     margin: 15px 0;
+     padding: 10px;
+     background: #f9f9f9;
+     border-radius: 4px;
+ }
+
+ .table-preview table {
+     margin-top: 8px;
+ }
+
+ .dialog-buttons {
+     display: flex;
+     gap: 8px;
+     justify-content: flex-end;
+     margin-top: 15px;
+ }
+
+ .dialog-buttons button {
+     padding: 8px 16px;
+     border: 1px solid #ccc;
+     border-radius: 4px;
+     cursor: pointer;
+ }
+
+ .dialog-buttons button:first-child {
+     background: #007bff;
+     color: white;
+     border-color: #007bff;
+ }
+
+ .dialog-buttons button:hover {
+    color: black;
+ }
+
+ .cell-tooltip {
+     position: fixed;
+     background: #fff;
+     border: 1px solid #ccc;
+     padding: 4px;
+     display: flex;
+     flex-direction: column;
+     z-index: 10000;
+     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+     min-width: 120px;
+     pointer-events: auto; /* Ensure it can receive clicks */
+ }
+
+ .cell-tooltip button {
+     background: #f8f9fa;
+     border: 1px solid #dee2e6;
+     padding: 4px 8px;
+     text-align: left;
+     cursor: pointer;
+     font-size: 12px;
+     margin: 1px 0;
+     border-radius: 2px;
+     pointer-events: auto; /* Ensure buttons can receive clicks */
+ }
+
+ .cell-tooltip button:hover {
+     background: #e9ecef;
+     border-color: #adb5bd;
+ }
+
+ .cell-tooltip button:active {
+     background: #dee2e6;
+ }
+
+ .re-toolbar button.active {
+  background: #007bff;
+  color: white;
+}
+
+/* Font Awesome icon styles */
+.re-toolbar button i {
+  font-size: 14px;
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+}
+
+.re-toolbar button i.fa-undo,
+.re-toolbar button i.fa-redo {
+  font-size: 12px;
+}
+
+/* Font Awesome 6 specific styles */
+.re-toolbar button i.fas {
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+
+/* Ensure icons are visible */
+.re-toolbar button i:before {
+  display: inline-block;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+}
